@@ -1,0 +1,11 @@
+id1,pharmacy1,id2,pharmacy2,distance,duration
+0,Aprium Pharmacie St Soupplets,1,Pharmacie Principale,29663.2,1919.2
+0,Aprium Pharmacie St Soupplets,2,Pharmacie de Magny,33911.3,1920.4
+0,Aprium Pharmacie St Soupplets,3,Pharmacie Avicenne,21828.2,1747.8
+0,Aprium Pharmacie St Soupplets,4,Pharmacie Lepesme,55327,2948.8
+1,Pharmacie Principale,2,Pharmacie de Magny,59952.4,3538.7
+1,Pharmacie Principale,3,Pharmacie Avicenne,52904.1,3335.6
+1,Pharmacie Principale,4,Pharmacie Lepesme,103020.2,4535.3
+2,Pharmacie de Magny,3,Pharmacie Avicenne,6397.7,623.3
+2,Pharmacie de Magny,4,Pharmacie Lepesme,33217.6,1954.5
+3,Pharmacie Avicenne,4,Pharmacie Lepesme,36681.1,2198.2

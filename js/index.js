@@ -11,7 +11,7 @@ async function searchCity(city, postalCode) {
 
 
 // Load the CSV file synchronously
-fs.readFile('data/livraison10.csv', 'utf8', async (err, data) => {
+fs.readFile('data/livraison5.csv', 'utf8', async (err, data) => {
     if (err) {
         console.error('Error reading the file:', err);
         return;
@@ -23,6 +23,7 @@ fs.readFile('data/livraison10.csv', 'utf8', async (err, data) => {
         const [name, address, postalCode, city] = lines[i].split(',');
         const coordinates = await searchCity(city, postalCode);
         pharmacies.push({
+            id: i,
             name,
             address,
             postalCode,
@@ -42,20 +43,20 @@ fs.readFile('data/livraison10.csv', 'utf8', async (err, data) => {
                 `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}&start=${pharmacies[i].coordinates}&end=${pharmacies[j].coordinates}`
             );
             const data = await response.json();
+            console.log(data);
             distances.push({
                 pharmacy1: pharmacies[i],
                 pharmacy2: pharmacies[j],
                 distance: data.features[0].properties.summary.distance,
                 duration: data.features[0].properties.summary.duration
             });
-            setTimeout(() => {}, 1000);
         }
     }
 
     // Creation of the CSV file
-    let csv = 'pharmacy1,pharmacy2,distance,duration\n';
+    let csv = 'id1,pharmacy1,id2,pharmacy2,distance,duration\n';
     distances.forEach((distance) => {
-        csv += `${distance.pharmacy1.name},${distance.pharmacy2.name},${distance.distance},${distance.duration}\n`;
+        csv += `${distance.pharmacy1.id},${distance.pharmacy1.name},${distance.pharmacy2.id},${distance.pharmacy2.name},${distance.distance},${distance.duration}\n`;
     });
     fs.writeFile('data/distances.csv', csv, (err) => {
         if (err) {
