@@ -11,7 +11,7 @@ async function searchCity(city, postalCode) {
 
 
 // Load the CSV file synchronously
-fs.readFile('data/livraison85.csv', 'utf8', async (err, data) => {
+fs.readFile('data/livraison10.csv', 'utf8', async (err, data) => {
     if (err) {
         console.error('Error reading the file:', err);
         return;
@@ -19,7 +19,7 @@ fs.readFile('data/livraison85.csv', 'utf8', async (err, data) => {
 
     const lines = data.split('\n');
     const pharmacies = [];
-    for (let i = 1; i < lines.length - 1; i++) {
+    for (let i = 0; i < lines.length - 1; i++) {
         const [name, address, postalCode, city] = lines[i].split(',');
         const coordinates = await searchCity(city, postalCode);
         pharmacies.push({
@@ -33,7 +33,8 @@ fs.readFile('data/livraison85.csv', 'utf8', async (err, data) => {
 
     var distances = [];
 
-    // Calcul des distances entre chaque couple de pharmacies
+    // Calculation of the distances between each pair of pharmacies
+    console.log(pharmacies.length);
     for (let i = 0; i < pharmacies.length; i++) {
         for (let j = i + 1; j < pharmacies.length; j++) {
             // Appel API
@@ -46,11 +47,12 @@ fs.readFile('data/livraison85.csv', 'utf8', async (err, data) => {
                 pharmacy2: pharmacies[j],
                 distance: data.features[0].properties.summary.distance,
                 duration: data.features[0].properties.summary.duration
-            });        
+            });
+            setTimeout(() => {}, 1000);
         }
     }
 
-    // Création du fichier CSV
+    // Creation of the CSV file
     let csv = 'pharmacy1,pharmacy2,distance,duration\n';
     distances.forEach((distance) => {
         csv += `${distance.pharmacy1.name},${distance.pharmacy2.name},${distance.distance},${distance.duration}\n`;
