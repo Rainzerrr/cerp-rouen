@@ -1,4 +1,4 @@
-void init_genome();
+Trajet* init_genome(Trajet* trajets);
 
 void value_genome();
 

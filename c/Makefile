@@ -12,7 +12,7 @@ voyageur.o: voyageur.c voyageur.h
 	$(CC) -c voyageur.c -o voyageur.o $(CFLAGS)
 
 genome.o: genome.c genome.h
-	$(CC) -c genome.c -o $(CFLAGS)
+	$(CC) -c genome.c -o genome.o $(CFLAGS)
 
 clean:
 	rm -f *.o

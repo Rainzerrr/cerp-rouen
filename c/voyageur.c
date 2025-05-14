@@ -6,6 +6,10 @@
 
 #define MAX_LINE_LENGTH 1024
 
+/*void print_trajet(Trajet* trajet){
+    printf("ph1 : %d | ph2 : %d | distance : %f | durée : %f\n", trajet->ph1, trajet->ph2, trajet->distance, trajet->duration);
+}*/
+
 void initialize_matrix(Board matrix, Trajet* trajets) {
     int i, j;
     for (i = 0 ; i < NB_PHARMA ; i++) {
@@ -55,9 +59,14 @@ int main(int argc, char* argv[]) {
         printf("\n");
     }
 
-    init_genome();
-    value_genome();
-    sort_genome();
+    Trajet* genome = init_genome(trajets);
+    int k;
+    for(k = 0; k < NB_PHARMA-1; k++){
+        /*print_trajet(&genome[k]);*/
+    }
+
+    /*value_genome();
+    sort_genome();*/
 
     free(trajets);
     return 0;
