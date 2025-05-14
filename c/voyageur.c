@@ -6,10 +6,11 @@
 #define MAX_LINE_LENGTH 1024
 
 void initialize_matrix(Board matrix, Trajet* trajets) {
-    int i;
-    for (i = 0 ; i < NB_PHARMA * NB_PHARMA ; i++) {
-        matrix[trajets[i].ph1][trajets[i].ph2] = trajets[i];
-        matrix[trajets[i].ph2][trajets[i].ph1] = trajets[i];
+    int i, j;
+    for (i = 0 ; i < NB_PHARMA ; i++) {
+        for (j = 0 ; j < NB_PHARMA ; j++) {
+            matrix[i][j] = trajets[i * NB_PHARMA + j].distance;
+        }
     }
 };
 
@@ -21,12 +22,6 @@ void parse_csv_trajet(FILE* file, Trajet* trajets) {
         int col = 0;
         while (token != NULL) {
             switch (col) {
-                case 0:
-                    trajets->ph1 = atoi(token);
-                    break;
-                case 2:
-                    trajets->ph2 = atoi(token);
-                    break;
                 case 4:
                     trajets->distance = atof(token);
                     break;
@@ -49,12 +44,15 @@ int main(int argc, char* argv[]) {
     Trajet* trajets = malloc(nb_lines * sizeof(Trajet));
     parse_csv_trajet(file, trajets);
     fclose(file);
-    int i;
-    for (i = 0; i < nb_lines; i++) {
-        printf("%d %d %f %f\n", trajets[i].ph1, trajets[i].ph2, trajets[i].distance, trajets[i].duration);
-    }
+    int i, j;
     Board matrix;
     initialize_matrix(matrix, trajets);
+    for (i = 0; i < NB_PHARMA; i++) {
+        for (j = 0; j < NB_PHARMA; j++) {
+            printf("%f ", matrix[i][j]);
+        }
+        printf("\n");
+    }
     free(trajets);
     return 0;
 }

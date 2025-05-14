@@ -9,6 +9,6 @@ typedef struct trajet {
     double duration;
 } Trajet;
 
-typedef Trajet Board[NB_PHARMA][NB_PHARMA];
+typedef float Board[NB_PHARMA][NB_PHARMA];
 
 #endif
