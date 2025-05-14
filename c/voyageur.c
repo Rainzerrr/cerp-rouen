@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "voyageur.h"
+#include "genome.h"
 
 #define MAX_LINE_LENGTH 1024
 
@@ -53,6 +54,11 @@ int main(int argc, char* argv[]) {
         }
         printf("\n");
     }
+
+    init_genome();
+    value_genome();
+    sort_genome();
+
     free(trajets);
     return 0;
 }
