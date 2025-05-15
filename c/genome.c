@@ -2,14 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "voyageur.h"
+#include "trajet.h"
 
 
 #define MAX_TRIALS 100
 
-void print_trajets(Trajet* trajet){
-    printf("ph1 : %d | ph2 : %d | distance : %f | durée : %f\n", trajet->ph1, trajet->ph2, trajet->distance, trajet->duration);
-}
 
 int is_in_genome(Trajet* genome, int size, Trajet* t) {
     for (int i = 0; i < size; i++) {
@@ -70,3 +67,22 @@ double calcul_fitness(Trajet* genome, int size){
 void sort_genomes(){
     
 };
+
+void print_10_genomes(Trajet* trajets) {
+    for (int i = 0; i < 10; i++) {
+        Trajet* genome = NULL;
+
+        // Tenter de générer un genome valide, relancer si NULL
+        do {
+            genome = init_genome(trajets);
+        } while (genome == NULL);
+
+        printf("Genome #%d :\n", i + 1);
+        for (int k = 0; k < NB_PHARMA - 1; k++) {
+            print_trajets(&(genome[k]));
+        }
+        printf("genome fitness : %.6f\n", calcul_fitness(genome, NB_PHARMA -1));
+
+        free(genome);
+    }
+}
