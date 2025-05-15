@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -ansi -lMLV -g
+CFLAGS=
 LDFLAGS=
 OBJ=voyageur.o genome.o
 

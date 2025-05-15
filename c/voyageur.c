@@ -1,14 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "voyageur.h"
 #include "genome.h"
 
 #define MAX_LINE_LENGTH 1024
-
-/*void print_trajet(Trajet* trajet){
-    printf("ph1 : %d | ph2 : %d | distance : %f | durée : %f\n", trajet->ph1, trajet->ph2, trajet->distance, trajet->duration);
-}*/
 
 void initialize_matrix(Board matrix, Trajet* trajets) {
     int i, j;
@@ -41,33 +38,71 @@ void parse_csv_trajet(FILE* file, Trajet* trajets) {
     }
 }
 
+void print_10_genomes(Trajet* trajets) {
+    for (int i = 0; i < 10; i++) {
+        Trajet* genome = NULL;
+
+        // Tenter de générer un genome valide, relancer si NULL
+        do {
+            genome = init_genome(trajets);
+        } while (genome == NULL);
+
+        printf("Genome #%d :\n", i + 1);
+        for (int k = 0; k < NB_PHARMA - 1; k++) {
+            print_trajet(&(genome[k]));
+        }
+        printf("genome fitness : %.6f\n", calcul_fitness(genome, NB_PHARMA -1));
+
+        free(genome);
+    }
+}
+
 
 
 int main(int argc, char* argv[]) {
+    
+    srand(time(NULL));
+    Trajet trajets[] = {
+        {1, 2, 3200.5, 420.3},
+        {1, 3, 8500.1, 780.2},
+        {1, 4, 4500.2, 500.1},
+    
+        {2, 1, 3200.5, 420.3},
+        {2, 3, 2600.8, 300.4},
+        {2, 4, 9000.4, 810.5},
+    
+        {3, 1, 8500.1, 780.2},
+        {3, 2, 2600.8, 300.4},
+        {3, 4, 7000.9, 650.2},
+    
+        {4, 1, 4500.2, 500.1},
+        {4, 2, 9000.4, 810.5},
+        {4, 3, 7000.9, 650.2}
+    };
+    
+    // Décommenter dès que la génération de la matrice ne bug plus
+    /*
     FILE *file = fopen("../js/data/distances.csv", "r");
-    int nb_lines = NB_PHARMA * NB_PHARMA;
-    Trajet* trajets = malloc(nb_lines * sizeof(Trajet));
+    if (!file) {
+        perror("Erreur lors de l'ouverture du fichier CSV");
+        return 1;
+    }
     parse_csv_trajet(file, trajets);
     fclose(file);
-    int i, j;
+    */
+
     Board matrix;
     initialize_matrix(matrix, trajets);
-    for (i = 0; i < NB_PHARMA; i++) {
-        for (j = 0; j < NB_PHARMA; j++) {
-            printf("%f ", matrix[i][j]);
+
+    printf("Matrice des distances :\n");
+    for (int i = 0; i < NB_PHARMA; i++) {
+        for (int j = 0; j < NB_PHARMA; j++) {
+            printf("%8.1f ", matrix[i][j]);
         }
         printf("\n");
     }
 
-    Trajet* genome = init_genome(trajets);
-    int k;
-    for(k = 0; k < NB_PHARMA-1; k++){
-        /*print_trajet(&genome[k]);*/
-    }
+    print_10_genomes(trajets);
 
-    /*value_genome();
-    sort_genome();*/
-
-    free(trajets);
     return 0;
 }

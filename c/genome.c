@@ -4,49 +4,68 @@
 
 #include "voyageur.h"
 
+
+#define MAX_TRIALS 100
+
 void print_trajet(Trajet* trajet){
     printf("ph1 : %d | ph2 : %d | distance : %f | durée : %f\n", trajet->ph1, trajet->ph2, trajet->distance, trajet->duration);
 }
 
-int is_in_genome(Trajet* genome, int size, Trajet* t){
-    print_trajet(t);
-    int i;
-    for(i = 0; i < size; i++){
-        int genome1 = genome[i].ph1;
-        int genome2 = genome[i].ph2;
-
-        printf("genome 1 : %d | genome 2 : %d\n", genome1, genome2);
-
-        if(genome1 == t->ph1 && genome2 == t->ph2){
+int is_in_genome(Trajet* genome, int size, Trajet* t) {
+    for (int i = 0; i < size; i++) {
+        int g1 = genome[i].ph1;
+        int g2 = genome[i].ph2;
+        if(t->ph2 == g2 || t->ph1 == g1){
+            return 1;
+        }
+        if(t->ph2 == g1 && t->ph1 == g2){
             return 1;
         }
     }
     return 0;
 }
 
-Trajet* init_genome(Trajet* trajets){
+
+Trajet* init_genome(Trajet* trajets) {
     int cpt = 0;
-    Trajet* genome = malloc((NB_PHARMA-1) * sizeof(Trajet));
-    srand(time(NULL));
-    while(cpt < NB_PHARMA-1){
-
-        int alea = rand()%NB_PHARMA;
-        Trajet t = trajets[alea];
-
-        printf("%d\n", is_in_genome(genome, cpt, &t));
-        if(!is_in_genome(genome, cpt, &t)){
-            printf("while if\n");
-            cpt++;
-            genome[cpt] = t;
-        }
-    }
-    return genome;
-};
-
-void value_genome(){
+    int trials = 0;
+    Trajet* genome = malloc((NB_PHARMA - 1) * sizeof(Trajet));
     
+    if (!genome) {
+        fprintf(stderr, "Erreur d'allocation mémoire\n");
+        exit(EXIT_FAILURE);
+    }
+
+
+    while (cpt < NB_PHARMA - 1) {
+        if (trials > MAX_TRIALS) {
+            free(genome);
+            return NULL;
+        }
+        
+        int alea = (rand() % 11) +1;
+        Trajet t = trajets[alea];
+        
+        if (!is_in_genome(genome, cpt, &t)) {
+            genome[cpt] = t;
+            cpt++;
+        }
+        
+        trials++;
+    }
+
+    return genome;
+}
+
+double calcul_fitness(Trajet* genome, int size){
+    int i;
+    double sum = 0;
+    for(i=0; i<size; i++){
+        sum += genome[i].distance;
+    }
+    return sum;
 };
 
-void sort_genome(){
+void sort_genomes(){
     
 };
