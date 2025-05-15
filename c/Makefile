@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=
 LDFLAGS=
-OBJ=voyageur.o genome.o
+OBJ=voyageur.o genome.o matrix.o
 
 all: voyageur
 
@@ -14,6 +14,8 @@ voyageur.o: voyageur.c voyageur.h
 genome.o: genome.c genome.h
 	$(CC) -c genome.c -o genome.o $(CFLAGS)
 
+matrix.o: matrix.c matrix.h
+	$(CC) -c matrix.c -o matrix.o $(CFLAGS)
 clean:
 	rm -f *.o
 	rm -f *~
