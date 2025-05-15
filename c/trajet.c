@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include <trajet.h>
+#include "trajet.h"
 
 /* print struct trajet */
 void print_trajets(Trajet* trajet){
