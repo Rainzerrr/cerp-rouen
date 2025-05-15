@@ -7,7 +7,7 @@
 
 #define MAX_TRIALS 100
 
-void print_trajet(Trajet* trajet){
+void print_trajets(Trajet* trajet){
     printf("ph1 : %d | ph2 : %d | distance : %f | durée : %f\n", trajet->ph1, trajet->ph2, trajet->distance, trajet->duration);
 }
 
@@ -44,6 +44,7 @@ Trajet* init_genome(Trajet* trajets) {
         }
         
         int alea = (rand() % 11) +1;
+        //faire suivre les pharmacies ici
         Trajet t = trajets[alea];
         
         if (!is_in_genome(genome, cpt, &t)) {

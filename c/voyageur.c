@@ -49,7 +49,7 @@ void print_10_genomes(Trajet* trajets) {
 
         printf("Genome #%d :\n", i + 1);
         for (int k = 0; k < NB_PHARMA - 1; k++) {
-            print_trajet(&(genome[k]));
+            print_trajets(&(genome[k]));
         }
         printf("genome fitness : %.6f\n", calcul_fitness(genome, NB_PHARMA -1));
 
