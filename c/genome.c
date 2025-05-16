@@ -7,6 +7,19 @@
 
 #define MAX_TRIALS 100
 
+Trajet* getTrajet(BoardTrajet matrix_trajet, int i, int j) {
+    return &matrix_trajet[i][j];
+};
+
+void shuffle(int* tab, int size, int nbShuffle) {
+    for (int i = 0; i < nbShuffle-1; i++) {
+        size_t index = rand() % (size-1);
+
+        int temp = tab[index];
+        tab[index] = tab[index+1];
+        tab[index+1] = temp;
+    }
+}
 
 int is_in_genome(Trajet* genome, int size, Trajet* t) {
     for (int i = 0; i < size; i++) {
@@ -22,21 +35,30 @@ int is_in_genome(Trajet* genome, int size, Trajet* t) {
     return 0;
 }
 
-Trajet* init_genome(BoardTrajet matrix_trajets) {
+void init_genome(int* id_pharma, int size) {
 
+    for (int i = 0; i < size; i++) {
+        id_pharma[i] = i;
+    }
 
-
-    Trajet last_trajet;
-
-
-    return &last_trajet;
+    shuffle(id_pharma, size, size*5);
 }
 
-double calcul_fitness(Trajet* genome, int size){
+void init_generation(int** generation, int size) {
+
+    for (int i = 0; i < size; i++) {
+        int* pharmas = (int*) malloc((NB_PHARMA-1)*sizeof(int));
+        init_genome(pharmas, NB_PHARMA-1);
+        generation[i] = pharmas;
+    }
+}
+
+double calcul_fitness(int* genome, int size, BoardTrajet matrix_trajets){
     int i;
     double sum = 0;
-    for(i=0; i<size; i++){
-        sum += genome[i].distance;
+    for(i=0; i<size-1; i++){
+        Trajet* trajet = getTrajet(matrix_trajets, genome[i], genome[i+1]);
+        sum+=trajet->distance;
     }
     return sum;
 };
@@ -45,21 +67,20 @@ void sort_genomes(){
     
 };
 
-void print_10_genomes(BoardTrajet trajets) {
+void print_10_genomes(BoardTrajet matrix_trajets) {
+    int **generation = malloc(10*sizeof(int*));
+    init_generation(generation, 10);
     for (int i = 0; i < 10; i++) {
-        Trajet* genome = NULL;
-
-        // Tenter de générer un genome valide, relancer si NULL
-        do {
-            genome = init_genome(trajets);
-        } while (genome == NULL);
-
+        int* genome = generation[i];
         printf("Genome #%d :\n", i + 1);
-        for (int k = 0; k < NB_PHARMA - 1; k++) {
-            print_trajets(&(genome[k]));
+        for (int i = 0; i < NB_PHARMA-1; ++i) {
+            printf("%d ", genome[i]);
         }
-        printf("genome fitness : %.6f\n", calcul_fitness(genome, NB_PHARMA -1));
+        printf("\n");
+        for (int k = 0; k < NB_PHARMA - 1 - 1; k++) { // -1 parce que 4 éléments et -1 parce que boucle 2 à 2 (+1 dans la boucle)
+            print_trajets(getTrajet(matrix_trajets, genome[k], genome[k+1]));
+        }
+        printf("genome fitness : %.6f\n", calcul_fitness(genome, NB_PHARMA-1, matrix_trajets));
 
-        free(genome);
     }
 }
