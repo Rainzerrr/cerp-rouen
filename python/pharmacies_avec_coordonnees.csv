@@ -1,4 +1,5 @@
 nom,adresse,code_postal,ville,latitude,longitude
+Départ entrepôt Cerp,600 Rue des Madeleines,77100,Mareuil-lès-Meaux,48.936157007206,2.874532035959
 Pharmacie du Valois,56 Av. du Président John Kennedy,60800,Crépy-en-Valois,49.226476000262,2.881685990319
 Pharmacie Lepesme,2-4 Pl. Charles de Gaulle,77540,Rozay-en-Brie,48.683387,2.9571437
 Pharmacie de Boissy,4 Rue de Rebais,77169,Boissy-le-Châtel,48.8281832,3.1526585
@@ -80,7 +81,7 @@ Pharmacie de Saint-Jean - Mr et Mme Poisson,15 bis Rue Raymond Poincaré,77660,S
 Pharmacie de St Mard Elsie,24 Av. de la Font du Berger,77230,Saint-Mard,49.033156405007,2.680864136195
 Pharmacie Victor Hugo,54 Bd Victor Hugo,77220,Gretz-Armainvilliers,48.7372151,2.7121603
 Pharmacie de Pontcarré,85 Grande Rue,77135,Pontcarré,48.7932318,2.7091247
-Pharmacie De La Gare,5 place Révolution,77680,Roissy en Brie,48.796171009911,2.650242029992
+Pharmacie De La Gare,5 place Révolution,77680,Roissy en Brie,48.7961,2.6505
 Pharmacie des Ormes,8 Rue Georges Faroy,77515,Faremoutiers,48.8004612,2.9860057
 Grande Pharmacie Du centre,Rue Gérard de Nerval,77280,Othis,49.0841218,2.6769077
 Pharmacie des Saints Pères nanteuil les meaux,Avenue Fridingen,77100,Nanteuil-lès-Meaux,48.9368561,2.8833609

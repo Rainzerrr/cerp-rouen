@@ -26,14 +26,13 @@ def geocode_address(address, city, postal_code, attempt=1, max_attempts=5, timeo
             print("Adresse ignorée.")
             return None, None
     
-    # Formater l'adresse complète
+    # Formattage de l'adresse complète
     full_address = f"{address}, {postal_code} {city}, France"
     
-    # Initialiser le géocodeur avec un user-agent spécifique et un timeout plus long
+    # Initialisation du géocodeur avec un user-agent spécifique et un timeout plus long
     geolocator = Nominatim(user_agent="pharmacy_distance_calculator", timeout=timeout)
     
     try:
-        # Obtenir les coordonnées
         location = geolocator.geocode(full_address)
         if location:
             return location.latitude, location.longitude
@@ -56,7 +55,7 @@ def geocode_address(address, city, postal_code, attempt=1, max_attempts=5, timeo
                 return None, None
     except (GeocoderTimedOut, GeocoderServiceError) as e:
         print(f"Erreur de géocodage (tentative {attempt}/{max_attempts}): {e}")
-        # Attendre plus longtemps entre les tentatives
+        # Attente exponentielle avant de réessayer
         wait_time = 2 ** attempt
         print(f"Attente de {wait_time} secondes avant nouvelle tentative...")
         time.sleep(wait_time)
@@ -66,25 +65,67 @@ def geocode_address(address, city, postal_code, attempt=1, max_attempts=5, timeo
         time.sleep(5)
         return geocode_address(address, city, postal_code, attempt + 1, max_attempts, timeout)
 
-# Fonction pour obtenir la distance routière entre deux points
-def get_driving_distance(origin_lat, origin_lon, dest_lat, dest_lon, timeout=10):
-    if origin_lat is None or origin_lon is None or dest_lat is None or dest_lon is None:
-        return -1
-        
-    url = f"http://router.project-osrm.org/route/v1/driving/{origin_lon},{origin_lat};{dest_lon},{dest_lat}?overview=false"
+# Fonction pour obtenir la matrice de distances et durées
+def get_infos_matrix(coordinates, chunk_size=100, timeout=30):
+    n = len(coordinates)
     
-    try:
-        response = requests.get(url, timeout=timeout)
-        data = response.json()
+    # Initialisation des matrices de résultats
+    matrix_distances = np.zeros((n, n))
+    matrix_durations = np.zeros((n, n))
+    
+    # Division des coordonnées en chunks pour respecter les limites de l'API
+    for i in range(0, n, chunk_size):
+        sources_chunk = list(range(i, min(i + chunk_size, n)))
         
-        if data["code"] == "Ok":
-            return data["routes"][0]["distance"]  # Distance en mètres
-        else:
-            print(f"Pas de route trouvée entre ({origin_lat},{origin_lon}) et ({dest_lat},{dest_lon})")
-            return -1
-    except Exception as e:
-        print(f"Erreur lors de la requête API: {e}")
-        return -1
+        for j in range(0, n, chunk_size):
+            destinations_chunk = list(range(j, min(j + chunk_size, n)))
+            
+            # Construction des coordonnées pour cette partie de la matrice
+            coords_str = ";".join([f"{lon},{lat}" for lon, lat in coordinates])
+            # Les sources et destinations sont les indices dans la matrice
+            sources_str = ";".join(map(str, sources_chunk))
+            destinations_str = ";".join(map(str, destinations_chunk))
+            
+            url = f"http://router.project-osrm.org/table/v1/driving/{coords_str}?sources={sources_str}&destinations={destinations_str}"
+            
+            try:
+                print(f"Requête OSRM pour sources {i}:{i+len(sources_chunk)}, destinations {j}:{j+len(destinations_chunk)}")
+                response = requests.get(url, timeout=timeout)
+                data = response.json()
+                
+                if data.get("code") == "Ok":
+                    # Récupération des matrices de distances et de durées
+                    durations = np.array(data.get("durations", []))
+                    distances = np.array(data.get("distances", []))
+                    
+                    # Si les distances ne sont pas incluses (par défaut OSRM ne renvoie que les durées)
+                    # alors on refait une requête spécifique pour les distances
+                    if len(distances) == 0 and "durations" in data:
+                        url_with_distances = f"{url}&annotations=distance,duration"
+                        response_dist = requests.get(url_with_distances, timeout=timeout)
+                        data_dist = response_dist.json()
+                        if data_dist.get("code") == "Ok":
+                            distances = np.array(data_dist.get("distances", []))
+                    
+                    # Ajout des valeurs dans les matrices
+                    for idx_i, source_idx in enumerate(sources_chunk):
+                        for idx_j, dest_idx in enumerate(destinations_chunk):
+                            matrix_durations[source_idx, dest_idx] = durations[idx_i][idx_j]
+                            # Si nous avons des distances
+                            if len(distances) > 0:
+                                matrix_distances[source_idx, dest_idx] = distances[idx_i][idx_j]
+                else:
+                    print(f"Erreur avec l'API OSRM: {data.get('message', 'Erreur inconnue')}")
+                    return -1, -1
+                
+                # Pour éviter de surcharger l'API
+                time.sleep(1)
+                
+            except Exception as e:
+                print(f"Erreur lors de la requête à l'API Table: {e}")
+                return -1, -1
+    
+    return matrix_distances, matrix_durations
 
 def save_checkpoint(pharmacies, processed_count):
     """Sauvegarde les données traitées jusqu'à présent"""
@@ -93,22 +134,20 @@ def save_checkpoint(pharmacies, processed_count):
     print(f"Point de sauvegarde créé: {processed_count} pharmacies traitées. Fichier: {checkpoint_file}")
 
 def main():
-    # Vérifier s'il existe un fichier de point de contrôle pour reprendre le traitement
+    # Vérification de l'existance d'un fichier de point de contrôle pour reprendre le traitement
     checkpoint_file = "pharmacies_checkpoint.csv"
     if os.path.exists(checkpoint_file):
         print(f"Reprise du traitement à partir du point de sauvegarde: {checkpoint_file}")
         pharmacies = pd.read_csv(checkpoint_file)
-        # Compter combien de pharmacies ont déjà des coordonnées
+        # Comptage des pharmacies déjà géocodées
         processed = pharmacies.dropna(subset=['latitude', 'longitude']).shape[0]
         print(f"{processed} pharmacies déjà géocodées.")
     else:
         # Chargement des données des pharmacies
         csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python", "data", "livraison85.csv")
         try:
-            # Définir les noms de colonnes appropriés pour votre fichier CSV
             col_names = ['nom', 'adresse', 'code_postal', 'ville']
             pharmacies = pd.read_csv(csv_path, header=None, names=col_names)
-            # Ajouter des colonnes pour les coordonnées géographiques
             pharmacies['latitude'] = None
             pharmacies['longitude'] = None
             processed = 0
@@ -162,64 +201,55 @@ def main():
     pharmacies.to_csv("pharmacies_avec_coordonnees.csv", index=False)
     print("Coordonnées des pharmacies enregistrées dans 'pharmacies_avec_coordonnees.csv'")
     
-    # Création de la matrice de distances
-    n = n_valid
-    distances = np.zeros((n, n))
+    # Préparer les coordonnées au format attendu par l'API OSRM (longitude, latitude)
+    coordinates = [(row['longitude'], row['latitude']) for _, row in valid_pharmacies.iterrows()]
     
-    # Calcul des distances routières pour chaque paire de pharmacies
-    total_pairs = n * (n - 1) // 2
-    print(f"Calcul de {total_pairs} distances routières entre {n} pharmacies...")
+    # Déterminer la taille optimale des chunks en fonction du nombre de pharmacies
+    chunk_size = min(100, n_valid)
     
-    pair_count = 0
+    print(f"Calcul de la matrice de distances et durées pour {n_valid} pharmacies...")
+    
     try:
-        with tqdm(total=total_pairs) as pbar:
-            for i in range(n):
-                for j in range(i+1, n):
-                    origin_lat = valid_pharmacies.iloc[i]['latitude']
-                    origin_lon = valid_pharmacies.iloc[i]['longitude']
-                    dest_lat = valid_pharmacies.iloc[j]['latitude']
-                    dest_lon = valid_pharmacies.iloc[j]['longitude']
-                    
-                    # Calcul de la distance routière
-                    distance = get_driving_distance(origin_lat, origin_lon, dest_lat, dest_lon)
-                    
-                    # Stockage dans la matrice (symétrique)
-                    distances[i, j] = distance
-                    distances[j, i] = distance
-                    
-                    pair_count += 1
-                    # Sauvegarder périodiquement la matrice de distances
-                    if pair_count % 50 == 0:
-                        np.save("distances_pharmacies_partial.npy", distances)
-                    
-                    # Pause pour ne pas surcharger l'API
-                    time.sleep(0.5)
-                    
-                    pbar.update(1)
+        # Calculer la matrice complète en une seule fois ou par chunks
+        distances, durations = get_infos_matrix(coordinates, chunk_size=chunk_size)
+        
+        if isinstance(distances, int) and distances == -1:
+            print("Erreur lors du calcul de la matrice. Impossible de continuer.")
+            return
+            
+        # Utiliser les noms des pharmacies comme identifiants
+        pharmacies_ids = valid_pharmacies['nom'].tolist()
+        
+        # Création des DataFrames avec les matrices
+        distance_df = pd.DataFrame(distances, index=pharmacies_ids, columns=pharmacies_ids)
+        durations_df = pd.DataFrame(durations, index=pharmacies_ids, columns=pharmacies_ids)
+    
+        # Sauvegarde des résultats
+        distance_csv = "distances_pharmacies.csv"
+        durations_csv = "durations_pharmacies.csv"
+        distance_df.to_csv(distance_csv)
+        durations_df.to_csv(durations_csv)
+        print(f"Matrice de distances enregistrée dans '{distance_csv}'")
+        print(f"Matrice de durées enregistrée dans '{durations_csv}'")
+        
+        # Sauvegarde au format numpy pour utilisation future
+        np.save("distances_pharmacies.npy", distances)
+        np.save("durations_pharmacies.npy", durations)
+        
     except KeyboardInterrupt:
-        print("\nInterruption détectée. Sauvegarde des distances calculées jusqu'à présent...")
-        np.save("distances_pharmacies_partial.npy", distances)
-        print("Calcul interrompu. Les distances partielles ont été sauvegardées.")
-        return
+        print("\nInterruption détectée. Sauvegarde des informations partielles...")
+        if 'distances' in locals() and isinstance(distances, np.ndarray):
+            np.save("distances_pharmacies_partial.npy", distances)
+        if 'durations' in locals() and isinstance(durations, np.ndarray):
+            np.save("durations_pharmacies_partial.npy", durations)
+        print("Calcul interrompu. Les informations partielles ont été sauvegardées.")
     except Exception as e:
-        print(f"Erreur pendant le calcul des distances: {e}")
-        np.save("distances_pharmacies_partial.npy", distances)
-        print("Erreur: Les distances partielles ont été sauvegardées.")
-        return
-    
-    # Utiliser les noms des pharmacies comme identifiants
-    pharmacies_ids = valid_pharmacies['nom'].tolist()
-    
-    # Création d'un DataFrame avec la matrice de distances
-    distance_df = pd.DataFrame(distances, index=pharmacies_ids, columns=pharmacies_ids)
-    
-    # Sauvegarde des résultats
-    output_csv = "distances_pharmacies.csv"
-    distance_df.to_csv(output_csv)
-    print(f"Matrice de distances enregistrée dans '{output_csv}'")
-    
-    # Sauvegarde au format numpy pour utilisation future
-    np.save("distances_pharmacies.npy", distances)
+        print(f"Erreur pendant le calcul des informations: {e}")
+        if 'distances' in locals() and isinstance(distances, np.ndarray):
+            np.save("distances_pharmacies_partial.npy", distances)
+        if 'durations' in locals() and isinstance(durations, np.ndarray):
+            np.save("durations_pharmacies_partial.npy", durations)
+        print("Erreur: Les informations partielles ont été sauvegardées.")
 
 if __name__ == "__main__":
     main()
