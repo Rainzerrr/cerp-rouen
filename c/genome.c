@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "trajet.h"
-
+#include "matrix.h"
 
 #define MAX_TRIALS 100
 
@@ -22,37 +22,14 @@ int is_in_genome(Trajet* genome, int size, Trajet* t) {
     return 0;
 }
 
-
-Trajet* init_genome(Trajet* trajets) {
-    int cpt = 0;
-    int trials = 0;
-    Trajet* genome = malloc((NB_PHARMA - 1) * sizeof(Trajet));
-    
-    if (!genome) {
-        fprintf(stderr, "Erreur d'allocation mémoire\n");
-        exit(EXIT_FAILURE);
-    }
+Trajet* init_genome(BoardTrajet matrix_trajets) {
 
 
-    while (cpt < NB_PHARMA - 1) {
-        if (trials > MAX_TRIALS) {
-            free(genome);
-            return NULL;
-        }
-        
-        int alea = (rand() % 11) +1;
-        //faire suivre les pharmacies ici
-        Trajet t = trajets[alea];
-        
-        if (!is_in_genome(genome, cpt, &t)) {
-            genome[cpt] = t;
-            cpt++;
-        }
-        
-        trials++;
-    }
 
-    return genome;
+    Trajet last_trajet;
+
+
+    return &last_trajet;
 }
 
 double calcul_fitness(Trajet* genome, int size){
@@ -68,7 +45,7 @@ void sort_genomes(){
     
 };
 
-void print_10_genomes(Trajet* trajets) {
+void print_10_genomes(BoardTrajet trajets) {
     for (int i = 0; i < 10; i++) {
         Trajet* genome = NULL;
 
