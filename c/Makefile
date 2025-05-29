@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=
-LDFLAGS=
+LDFLAGS=-lm
 OBJ=voyageur.o genome.o matrix.o trajet.o
 
 all: voyageur

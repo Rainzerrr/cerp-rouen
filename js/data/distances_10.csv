@@ -1,0 +1,122 @@
+id1,pharmacy1,id2,pharmacy2,distance,duration
+0,Dépôt,0,Dépôt,0.0,0.0
+0,Dépôt,1,Pharmacie A,4149.4,550.7
+0,Dépôt,2,Pharmacie B,1409.4,179.0
+0,Dépôt,3,Pharmacie C,2294.6,323.9
+0,Dépôt,4,Pharmacie D,1390.1,155.2
+0,Dépôt,5,Pharmacie E,1354.6,204.7
+0,Dépôt,6,Pharmacie F,4209.2,588.0
+0,Dépôt,7,Pharmacie G,4814.1,703.7
+0,Dépôt,8,Pharmacie H,4267.7,690.2
+0,Dépôt,9,Pharmacie I,3329.2,455.2
+0,Dépôt,10,Pharmacie J,3484.2,437.4
+1,Pharmacie A,0,Dépôt,2002.5,279.4
+1,Pharmacie A,1,Pharmacie A,0.0,0.0
+1,Pharmacie A,2,Pharmacie B,1476.1,175.6
+1,Pharmacie A,3,Pharmacie C,2071.7,249.0
+1,Pharmacie A,4,Pharmacie D,3281.1,419.4
+1,Pharmacie A,5,Pharmacie E,3976.6,488.3
+1,Pharmacie A,6,Pharmacie F,2805.5,338.3
+1,Pharmacie A,7,Pharmacie G,2266.2,263.1
+1,Pharmacie A,8,Pharmacie H,1242.0,197.5
+1,Pharmacie A,9,Pharmacie I,2527.0,419.7
+1,Pharmacie A,10,Pharmacie J,3328.2,414.3
+2,Pharmacie B,0,Dépôt,4625.3,662.0
+2,Pharmacie B,1,Pharmacie A,3568.8,484.9
+2,Pharmacie B,2,Pharmacie B,0.0,0.0
+2,Pharmacie B,3,Pharmacie C,2261.2,299.8
+2,Pharmacie B,4,Pharmacie D,2158.8,297.5
+2,Pharmacie B,5,Pharmacie E,3305.8,391.4
+2,Pharmacie B,6,Pharmacie F,2536.1,317.3
+2,Pharmacie B,7,Pharmacie G,3144.5,409.7
+2,Pharmacie B,8,Pharmacie H,1835.2,267.7
+2,Pharmacie B,9,Pharmacie I,3648.4,474.3
+2,Pharmacie B,10,Pharmacie J,3654.2,530.0
+3,Pharmacie C,0,Dépôt,1913.9,302.4
+3,Pharmacie C,1,Pharmacie A,1764.6,264.7
+3,Pharmacie C,2,Pharmacie B,4644.2,755.9
+3,Pharmacie C,3,Pharmacie C,0.0,0.0
+3,Pharmacie C,4,Pharmacie D,1202.8,168.4
+3,Pharmacie C,5,Pharmacie E,4031.2,480.5
+3,Pharmacie C,6,Pharmacie F,4012.8,526.6
+3,Pharmacie C,7,Pharmacie G,2613.1,429.6
+3,Pharmacie C,8,Pharmacie H,1285.9,172.9
+3,Pharmacie C,9,Pharmacie I,4867.4,768.3
+3,Pharmacie C,10,Pharmacie J,1977.7,299.9
+4,Pharmacie D,0,Dépôt,4529.4,562.0
+4,Pharmacie D,1,Pharmacie A,4703.5,596.3
+4,Pharmacie D,2,Pharmacie B,3488.1,547.2
+4,Pharmacie D,3,Pharmacie C,4981.7,772.1
+4,Pharmacie D,4,Pharmacie D,0.0,0.0
+4,Pharmacie D,5,Pharmacie E,2034.4,266.4
+4,Pharmacie D,6,Pharmacie F,4916.7,762.8
+4,Pharmacie D,7,Pharmacie G,1405.0,231.7
+4,Pharmacie D,8,Pharmacie H,1837.1,301.2
+4,Pharmacie D,9,Pharmacie I,4359.7,628.0
+4,Pharmacie D,10,Pharmacie J,4321.3,567.2
+5,Pharmacie E,0,Dépôt,4154.5,616.6
+5,Pharmacie E,1,Pharmacie A,2975.6,336.1
+5,Pharmacie E,2,Pharmacie B,2593.5,310.2
+5,Pharmacie E,3,Pharmacie C,2213.1,251.8
+5,Pharmacie E,4,Pharmacie D,3711.0,421.5
+5,Pharmacie E,5,Pharmacie E,0.0,0.0
+5,Pharmacie E,6,Pharmacie F,1462.6,168.5
+5,Pharmacie E,7,Pharmacie G,4623.2,561.4
+5,Pharmacie E,8,Pharmacie H,1692.1,201.8
+5,Pharmacie E,9,Pharmacie I,1218.9,194.3
+5,Pharmacie E,10,Pharmacie J,3528.2,406.2
+6,Pharmacie F,0,Dépôt,4286.1,653.6
+6,Pharmacie F,1,Pharmacie A,1321.1,183.4
+6,Pharmacie F,2,Pharmacie B,1687.3,189.0
+6,Pharmacie F,3,Pharmacie C,4822.3,616.3
+6,Pharmacie F,4,Pharmacie D,3016.3,414.1
+6,Pharmacie F,5,Pharmacie E,2239.2,321.6
+6,Pharmacie F,6,Pharmacie F,0.0,0.0
+6,Pharmacie F,7,Pharmacie G,4181.5,490.4
+6,Pharmacie F,8,Pharmacie H,4259.8,478.3
+6,Pharmacie F,9,Pharmacie I,2943.0,386.9
+6,Pharmacie F,10,Pharmacie J,1826.4,238.4
+7,Pharmacie G,0,Dépôt,2694.3,309.9
+7,Pharmacie G,1,Pharmacie A,4623.6,661.3
+7,Pharmacie G,2,Pharmacie B,1831.7,217.9
+7,Pharmacie G,3,Pharmacie C,4435.9,538.5
+7,Pharmacie G,4,Pharmacie D,1930.4,249.9
+7,Pharmacie G,5,Pharmacie E,4790.2,765.3
+7,Pharmacie G,6,Pharmacie F,3950.9,461.8
+7,Pharmacie G,7,Pharmacie G,0.0,0.0
+7,Pharmacie G,8,Pharmacie H,1314.3,178.0
+7,Pharmacie G,9,Pharmacie I,3269.3,407.4
+7,Pharmacie G,10,Pharmacie J,1924.9,241.1
+8,Pharmacie H,0,Dépôt,4762.7,649.4
+8,Pharmacie H,1,Pharmacie A,1726.4,276.5
+8,Pharmacie H,2,Pharmacie B,3876.5,563.2
+8,Pharmacie H,3,Pharmacie C,2752.3,358.0
+8,Pharmacie H,4,Pharmacie D,2708.0,397.9
+8,Pharmacie H,5,Pharmacie E,2217.2,303.0
+8,Pharmacie H,6,Pharmacie F,1400.2,166.0
+8,Pharmacie H,7,Pharmacie G,4297.5,510.2
+8,Pharmacie H,8,Pharmacie H,0.0,0.0
+8,Pharmacie H,9,Pharmacie I,3638.0,508.9
+8,Pharmacie H,10,Pharmacie J,3882.5,441.2
+9,Pharmacie I,0,Dépôt,1518.2,182.3
+9,Pharmacie I,1,Pharmacie A,1837.8,265.4
+9,Pharmacie I,2,Pharmacie B,1391.8,159.9
+9,Pharmacie I,3,Pharmacie C,4575.2,740.7
+9,Pharmacie I,4,Pharmacie D,4202.9,559.7
+9,Pharmacie I,5,Pharmacie E,4164.1,504.3
+9,Pharmacie I,6,Pharmacie F,3160.8,388.7
+9,Pharmacie I,7,Pharmacie G,4872.9,704.1
+9,Pharmacie I,8,Pharmacie H,2200.8,301.9
+9,Pharmacie I,9,Pharmacie I,0.0,0.0
+9,Pharmacie I,10,Pharmacie J,4834.8,711.2
+10,Pharmacie J,0,Dépôt,1933.0,232.6
+10,Pharmacie J,1,Pharmacie A,2437.7,289.5
+10,Pharmacie J,2,Pharmacie B,2170.5,243.6
+10,Pharmacie J,3,Pharmacie C,3279.3,389.7
+10,Pharmacie J,4,Pharmacie D,4672.6,610.7
+10,Pharmacie J,5,Pharmacie E,3145.1,434.0
+10,Pharmacie J,6,Pharmacie F,3612.1,407.3
+10,Pharmacie J,7,Pharmacie G,4675.4,570.6
+10,Pharmacie J,8,Pharmacie H,3936.8,440.9
+10,Pharmacie J,9,Pharmacie I,1260.4,183.0
+10,Pharmacie J,10,Pharmacie J,0.0,0.0

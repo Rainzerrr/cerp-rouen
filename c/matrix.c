@@ -43,3 +43,11 @@ void initialize_matrix_trajets(BoardTrajet matrix, const Trajet* trajets) {
         }
     }
 };
+
+void copy_board_trajet(BoardTrajet dest, BoardTrajet src) {
+    for (int i = 0; i < NB_PHARMA; i++) {
+        for (int j = 0; j < NB_PHARMA; j++) {
+            dest[i][j] = src[i][j];
+        }
+    }
+};

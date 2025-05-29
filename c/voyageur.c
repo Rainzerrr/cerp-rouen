@@ -39,14 +39,20 @@ void parse_csv_trajet(FILE* file, Trajet* trajets) {
 }
 
 int main(int argc, char* argv[]) {
-    
+    int duration = 60;
+    int nb_pop = 100;
+    if(argc > 1) {
+        duration = atoi(argv[1]);
+    }
+    if(argc > 2) {
+        nb_pop = atoi(argv[2]);
+    }
 
-    FILE *file = fopen("../js/data/distances.csv", "r");
+    FILE *file = fopen("../js/data/distances_10.csv", "r");
     if (!file) {
         perror("Erreur lors de l'ouverture du fichier CSV");
         return 1;
     }
-
     Trajet trajets[NB_PHARMA*NB_PHARMA];
     parse_csv_trajet(file, trajets);
     fclose(file);
@@ -59,8 +65,6 @@ int main(int argc, char* argv[]) {
     BoardTrajet matrix_trajets;
     initialize_matrix_trajets(matrix_trajets, trajets);
     print_matrix_trajet(matrix_trajets);
-
-
 
 
     srand(time(NULL));
@@ -82,7 +86,10 @@ int main(int argc, char* argv[]) {
     //     {4, 3, 7000.9, 650.2}
     // };
 
-    print_10_genomes(matrix_trajets);
+    printf("duration : %d, nb population : %d\n", duration, nb_pop);
+
+    launch_genetic(matrix_trajets, duration, nb_pop);
+
 
     return 0;
 }
