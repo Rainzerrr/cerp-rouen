@@ -30,11 +30,9 @@ void shuffle(int* tab, int size, int nbShuffle) {
 
 // Crée un génome aléatoire
 void init_genome(int* id_pharma, int size) {
-
     for (int i = 0; i < size; i++) {
         id_pharma[i] = i+1;
     }
-
     shuffle(id_pharma, size, size*5);
 }
 
@@ -138,8 +136,6 @@ void swap_genes(int *genome, int i, int j) {
 
 // Applique une mutation sur 10% des gènes d'un genome (au moins 1)
 void mutatation(int *genome, int size) {
-    // srand(time(NULL)); // Initialisation aleatoire
-
     // Calcul du nombre de mutations (10%, min 1)
     int num_mutations = (int)ceil(size * 0.1);
     if (num_mutations < 1) num_mutations = 1;
@@ -173,7 +169,7 @@ void free_population(int **population, int size) {
 }
 
 // Affiche tous les génomes d'une population avec leur fitness
-void print_generation(int **generation, int population_size, int gen_number) {
+void print_best_genome(int **generation, int population_size, int gen_number) {
     printf("\n=== Generation %d ===\n", gen_number);
 
     int best_idx = 0;
@@ -191,8 +187,6 @@ void print_generation(int **generation, int population_size, int gen_number) {
     printf(" -> 0\n");
 }
 
-#include <time.h>  // Pour clock() et CLOCKS_PER_SEC
-
 void launch_genetic(BoardTrajet matrix_trajets, int duration_seconds, int population_size) {
     copy_board_trajet(g_matrix, matrix_trajets);
     int **population = malloc(population_size * sizeof(int*));
@@ -200,79 +194,71 @@ void launch_genetic(BoardTrajet matrix_trajets, int duration_seconds, int popula
     
     printf("=== DEBUT ALGORITHME GENETIQUE ===\n");
     printf("Pharmacies: %d | Taille population: %d | Duree max: %d secondes\n", 
-           NB_PHARMA-1, population_size, duration_seconds);
+           NB_PHARMA - 1, population_size, duration_seconds);
 
-    clock_t start_time = clock();  // Utilisation de clock() pour une meilleure précision
+    clock_t start_time = clock();
     int gen = 1;
     double elapsed_seconds = 0;
     double best_fitness = 999999999.0;
+    int* best_genome;
     
     while (elapsed_seconds < duration_seconds) {
-        // Évaluation et tri
         sort_genomes(population, population_size);
         
         double current_best_fitness = calcul_fitness(population[0], NB_PHARMA - 1);
 
-        // Affichage du meilleur génome actuel
-        if(current_best_fitness < best_fitness){
-            print_generation(population, population_size, gen);
+        if (current_best_fitness < best_fitness) {
+            print_best_genome(population, population_size, gen);
             best_fitness = current_best_fitness;
+            best_genome = duplicate_genome(population[0], NB_PHARMA - 1);
+            }
+
+        int **new_pop = malloc(population_size * sizeof(int*));
+
+        // 1. Élitisme : 2 meilleurs
+        int elite_count = 2;
+        for (int i = 0; i < elite_count; i++) {
+            new_pop[i] = duplicate_genome(population[i], NB_PHARMA - 1);
         }
 
-        // Création de la nouvelle population
-        int **new_pop = malloc(population_size * sizeof(int*));
-        
-        // Élitisme: 15% des meilleurs génomes
-        int elite_count = population_size * 15 / 100;
-        for (int i = 0; i < elite_count; i++) {
-            new_pop[i] = duplicate_genome(population[i], NB_PHARMA-1);
-        }
-        
-        // Crossover: 75% de la population (dont 10-15% mutés)
-        int crossover_count = population_size * 75 / 100;
+        // 2. Croisement : 50% de la population
+        int crossover_start = elite_count;
+        int crossover_end = crossover_start + (population_size / 2);
         int top_30_percent = population_size * 30 / 100;
-        int mutation_target_min = population_size * 10 / 100;
-        int mutation_target_max = population_size * 15 / 100;
-        int mutation_count = 0;
-        
-        for (int i = elite_count; i < elite_count + crossover_count; i++) {
-            // Sélection des parents parmi les 30% meilleurs
+
+        for (int i = crossover_start; i < crossover_end; i++) {
             int p1 = rand() % top_30_percent;
             int p2 = rand() % top_30_percent;
             while (p2 == p1) p2 = rand() % top_30_percent;
-            
-            new_pop[i] = alternate_crossover(population[p1], population[p2], NB_PHARMA-1);
-            
-            // Mutation sur 10-15% de la population totale
-            if (mutation_count < mutation_target_max && 
-                (mutation_count < mutation_target_min || rand() % 2)) {
-                mutatation(new_pop[i], NB_PHARMA-1);
-                mutation_count++;
+
+            new_pop[i] = alternate_crossover(population[p1], population[p2], NB_PHARMA - 1);
+
+            // Mutation avec une probabilité de 30%
+            if (rand() % 100 < 30) {
+                mutatation(new_pop[i], NB_PHARMA - 1);
             }
         }
-        
-        // Génomes aléatoires: 10% de la population
-        for (int i = elite_count + crossover_count; i < population_size; i++) {
-            new_pop[i] = malloc((NB_PHARMA-1) * sizeof(int));
-            init_genome(new_pop[i], NB_PHARMA-1);
+
+        // 3. Génomes aléatoires : reste de la population
+        for (int i = crossover_end; i < population_size; i++) {
+            new_pop[i] = malloc((NB_PHARMA - 1) * sizeof(int));
+            init_genome(new_pop[i], NB_PHARMA - 1);
         }
-        
-        // Remplacement de la population
+
         free_population(population, population_size);
         population = new_pop;
         gen++;
 
-        // Calcul du temps écoulé avec précision
         elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
     }
 
-    // Affichage final des résultats
-    printf("\n=== RESULTAT FINAL (Generation %d, %.2f secondes) ===\n", gen-1, elapsed_seconds);
+    printf("\n=== RESULTAT FINAL (Generation %d, %.2f secondes) ===\n", gen - 1, elapsed_seconds);
     sort_genomes(population, population_size);
-    print_generation(population, population_size, gen-1);
+    print_best_genome(population, population_size, gen - 1);
     
     free_population(population, population_size);
 }
+
 
 void print_10_genomes(BoardTrajet matrix_trajets) {
     copy_board_trajet(g_matrix, matrix_trajets);

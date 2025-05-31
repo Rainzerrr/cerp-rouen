@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
         nb_pop = atoi(argv[2]);
     }
 
-    FILE *file = fopen("../js/data/distances_10.csv", "r");
+    FILE *file = fopen("../js/data/distances_21.csv", "r");
     if (!file) {
         perror("Erreur lors de l'ouverture du fichier CSV");
         return 1;
@@ -85,11 +85,10 @@ int main(int argc, char* argv[]) {
     //     {4, 2, 9000.4, 810.5},
     //     {4, 3, 7000.9, 650.2}
     // };
-
+    
     printf("duration : %d, nb population : %d\n", duration, nb_pop);
 
     launch_genetic(matrix_trajets, duration, nb_pop);
-
 
     return 0;
 }
