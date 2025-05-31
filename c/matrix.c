@@ -51,3 +51,13 @@ void copy_board_trajet(BoardTrajet dest, BoardTrajet src) {
         }
     }
 };
+
+void print_int_matrix(int** matrix, int size){
+    for (int i = 0; i < size; i++) {
+        printf("[");
+        for (int j = 0; j < (sizeof(matrix[i]) / sizeof(matrix[i][0])); j++) {
+            printf("%d, ", matrix[i][j]);
+        }
+        printf("]\n");
+    }
+}

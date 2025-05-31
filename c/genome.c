@@ -29,21 +29,62 @@ void shuffle(int* tab, int size, int nbShuffle) {
 }
 
 // Crée un génome aléatoire
-void init_genome(int* id_pharma, int size) {
+// void init_genome(int* id_pharma, int size) {
+//     for (int i = 0; i < size; i++) {
+//         id_pharma[i] = i+1;
+//     }
+//     shuffle(id_pharma, size, size*5);
+// }
+
+// Renvoie vrai si le trajet est inférieur à 3h, sinon false.
+int is_sub_traject_valid(int* vehicle, int size){
+    double sum = 0.0;
+    for(int i=0; i<size-1; i++){
+        Trajet* trajet = get_trajet(vehicle[i], vehicle[i+1]);
+        sum+=trajet->duration;
+    }
+
+    // Ajout du trajet entre le depot avec la première pharmacie
+    sum += get_trajet(0, vehicle[0])->duration;
+
+    // Ajout du trajet entre la dernière pharmacie et le depot
+    sum += get_trajet(vehicle[size-1], 0)->duration;
+
+    sum += size*3; // Ajouter la durée des livraisons dans les pharmacies
+
+    return sum < 10800.0 ? 1 : 0; // 10800 = 3h
+}
+
+void init_genome(int** genome, int size) {
+    int* id_pharma = (int*) malloc((NB_PHARMA-1)*sizeof(int));
     for (int i = 0; i < size; i++) {
         id_pharma[i] = i+1;
+    } // [1,2,3,4,5]
+    shuffle(id_pharma, size, size*5); // [3,1,2,5,4]
+    // [[3,1][2,5,4]]
+    
+    
+    for(int j = 0; j < size; j++){
+        for(int k = 0; k < size; k++){
+            if(is_sub_traject_valid(genome[j], size) == 1){
+                genome[j][k] = id_pharma[k];
+            }
+        }
     }
-    shuffle(id_pharma, size, size*5);
+
+    // Si tous les tableaux sont à plus de 3h, il faut en recréer un
+
+    free(id_pharma);
 }
 
 // Crée la première generation
-void init_generation(int** generation, int size) {
-    for (int i = 0; i < size; i++) {
-        int* pharmas = (int*) malloc((NB_PHARMA-1)*sizeof(int));
-        init_genome(pharmas, NB_PHARMA-1);
-        generation[i] = pharmas;
-    }
-}
+// void init_generation(int** generation, int size) {
+//     for (int i = 0; i < size; i++) {
+//         int* pharmas = (int*) malloc((NB_PHARMA-1)*sizeof(int));
+//         init_genome(pharmas, NB_PHARMA-1);
+//         generation[i] = pharmas;
+//     }
+// }
 
 // Fonction qui calcule la distance totale parcourue par le chemin d'un genome
 double calcul_fitness(int* genome, int size){
@@ -187,83 +228,83 @@ void print_best_genome(int **generation, int population_size, int gen_number) {
     printf(" -> 0\n");
 }
 
-void launch_genetic(BoardTrajet matrix_trajets, int duration_seconds, int population_size) {
-    copy_board_trajet(g_matrix, matrix_trajets);
-    int **population = malloc(population_size * sizeof(int*));
-    init_generation(population, population_size);
+// void launch_genetic(BoardTrajet matrix_trajets, int duration_seconds, int population_size) {
+//     copy_board_trajet(g_matrix, matrix_trajets);
+//     int **population = malloc(population_size * sizeof(int*));
+//     // init_generation(population, population_size);
     
-    printf("=== DEBUT ALGORITHME GENETIQUE ===\n");
-    printf("Pharmacies: %d | Taille population: %d | Duree max: %d secondes\n", 
-           NB_PHARMA - 1, population_size, duration_seconds);
+//     printf("=== DEBUT ALGORITHME GENETIQUE ===\n");
+//     printf("Pharmacies: %d | Taille population: %d | Duree max: %d secondes\n", 
+//            NB_PHARMA - 1, population_size, duration_seconds);
 
-    clock_t start_time = clock();
-    int gen = 1;
-    double elapsed_seconds = 0;
-    double best_fitness = 999999999.0;
-    int* best_genome;
+//     clock_t start_time = clock();
+//     int gen = 1;
+//     double elapsed_seconds = 0;
+//     double best_fitness = 999999999.0;
+//     int* best_genome;
     
-    while (elapsed_seconds < duration_seconds) {
-        sort_genomes(population, population_size);
+//     while (elapsed_seconds < duration_seconds) {
+//         sort_genomes(population, population_size);
         
-        double current_best_fitness = calcul_fitness(population[0], NB_PHARMA - 1);
+//         double current_best_fitness = calcul_fitness(population[0], NB_PHARMA - 1);
 
-        if (current_best_fitness < best_fitness) {
-            print_best_genome(population, population_size, gen);
-            best_fitness = current_best_fitness;
-            best_genome = duplicate_genome(population[0], NB_PHARMA - 1);
-            }
+//         if (current_best_fitness < best_fitness) {
+//             print_best_genome(population, population_size, gen);
+//             best_fitness = current_best_fitness;
+//             best_genome = duplicate_genome(population[0], NB_PHARMA - 1);
+//             }
 
-        int **new_pop = malloc(population_size * sizeof(int*));
+//         int **new_pop = malloc(population_size * sizeof(int*));
 
-        // 1. Élitisme : 2 meilleurs
-        int elite_count = 2;
-        for (int i = 0; i < elite_count; i++) {
-            new_pop[i] = duplicate_genome(population[i], NB_PHARMA - 1);
-        }
+//         // 1. Élitisme : 2 meilleurs
+//         int elite_count = 2;
+//         for (int i = 0; i < elite_count; i++) {
+//             new_pop[i] = duplicate_genome(population[i], NB_PHARMA - 1);
+//         }
 
-        // 2. Croisement : 50% de la population
-        int crossover_start = elite_count;
-        int crossover_end = crossover_start + (population_size / 2);
-        int top_30_percent = population_size * 30 / 100;
+//         // 2. Croisement : 50% de la population
+//         int crossover_start = elite_count;
+//         int crossover_end = crossover_start + (population_size / 2);
+//         int top_30_percent = population_size * 30 / 100;
 
-        for (int i = crossover_start; i < crossover_end; i++) {
-            int p1 = rand() % top_30_percent;
-            int p2 = rand() % top_30_percent;
-            while (p2 == p1) p2 = rand() % top_30_percent;
+//         for (int i = crossover_start; i < crossover_end; i++) {
+//             int p1 = rand() % top_30_percent;
+//             int p2 = rand() % top_30_percent;
+//             while (p2 == p1) p2 = rand() % top_30_percent;
 
-            new_pop[i] = alternate_crossover(population[p1], population[p2], NB_PHARMA - 1);
+//             new_pop[i] = alternate_crossover(population[p1], population[p2], NB_PHARMA - 1);
 
-            // Mutation avec une probabilité de 30%
-            if (rand() % 100 < 30) {
-                mutatation(new_pop[i], NB_PHARMA - 1);
-            }
-        }
+//             // Mutation avec une probabilité de 30%
+//             if (rand() % 100 < 30) {
+//                 mutatation(new_pop[i], NB_PHARMA - 1);
+//             }
+//         }
 
-        // 3. Génomes aléatoires : reste de la population
-        for (int i = crossover_end; i < population_size; i++) {
-            new_pop[i] = malloc((NB_PHARMA - 1) * sizeof(int));
-            init_genome(new_pop[i], NB_PHARMA - 1);
-        }
+//         // 3. Génomes aléatoires : reste de la population
+//         for (int i = crossover_end; i < population_size; i++) {
+//             new_pop[i] = malloc((NB_PHARMA - 1) * sizeof(int));
+//             init_genome(new_pop[i], NB_PHARMA - 1);
+//         }
 
-        free_population(population, population_size);
-        population = new_pop;
-        gen++;
+//         free_population(population, population_size);
+//         population = new_pop;
+//         gen++;
 
-        elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
-    }
+//         elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
+//     }
 
-    printf("\n=== RESULTAT FINAL (Generation %d, %.2f secondes) ===\n", gen - 1, elapsed_seconds);
-    sort_genomes(population, population_size);
-    print_best_genome(population, population_size, gen - 1);
+//     printf("\n=== RESULTAT FINAL (Generation %d, %.2f secondes) ===\n", gen - 1, elapsed_seconds);
+//     sort_genomes(population, population_size);
+//     print_best_genome(population, population_size, gen - 1);
     
-    free_population(population, population_size);
-}
+//     free_population(population, population_size);
+// }
 
 
 void print_10_genomes(BoardTrajet matrix_trajets) {
     copy_board_trajet(g_matrix, matrix_trajets);
     int **generation = malloc(10*sizeof(int*));
-    init_generation(generation, 10);
+    // init_generation(generation, 10);
     sort_genomes(generation, 10);
     for (int i = 0; i < 10; i++) {
         int* genome = generation[i];
@@ -278,4 +319,18 @@ void print_10_genomes(BoardTrajet matrix_trajets) {
         printf("genome fitness : %.6f\n", calcul_fitness(genome, NB_PHARMA-1));
 
     }
+}
+
+void test(BoardTrajet matrix_trajets){
+    copy_board_trajet(g_matrix, matrix_trajets);
+    
+    int** pharmas = (int**) malloc((NB_PHARMA-1)*sizeof(int*));
+    init_genome(pharmas, (NB_PHARMA-1)); // renvoie [ [1, 4, 8, 6], [7, 4, 2], [9, 5, 6], [], [], [] ]
+                                        //              1er camion    2nd        3eme     ...
+
+    print_int_matrix(pharmas, sizeof(pharmas)/sizeof(pharmas[0]));
+
+    
+
+    // [[1, 4, 8, 6], [7, 4, 2], [9, 5, 6], [], [], []] 
 }

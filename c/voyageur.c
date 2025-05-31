@@ -86,9 +86,11 @@ int main(int argc, char* argv[]) {
     //     {4, 3, 7000.9, 650.2}
     // };
     
-    printf("duration : %d, nb population : %d\n", duration, nb_pop);
+    // printf("duration : %d, nb population : %d\n", duration, nb_pop);
 
-    launch_genetic(matrix_trajets, duration, nb_pop);
+    // launch_genetic(matrix_trajets, duration, nb_pop);
+
+    test(matrix_trajets);
 
     return 0;
 }

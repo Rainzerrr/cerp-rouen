@@ -15,3 +15,5 @@ void initialize_matrix_duration(BoardDuration matrix, Trajet* trajets);
 void initialize_matrix_trajets(BoardTrajet matrix, const Trajet* trajets);
 
 void copy_board_trajet(BoardTrajet dest, BoardTrajet src);
+
+void print_int_matrix(int** matrix, int size);
