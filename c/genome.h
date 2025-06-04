@@ -3,9 +3,9 @@
 #include "trajet.h"
 #include "matrix.h"
 
-void print_10_genomes(BoardTrajet trajets);
+void print_10_genomes(int **trajets);
 
 double calcul_fitness(int* genome, int size);
 
-void launch_genetic(BoardTrajet matrix_trajets, int duration, int population_size);
+void launch_genetic(double **matrix_trajets, int duration, int population_size);
 #endif // GENOME_H

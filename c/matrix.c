@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-
+#include <stdlib.h>
 #include "trajet.h"
 #include "matrix.h"
 
@@ -44,10 +44,24 @@ void initialize_matrix_trajets(BoardTrajet matrix, const Trajet* trajets) {
     }
 };
 
-void copy_board_trajet(BoardTrajet dest, BoardTrajet src) {
+double **copy_board_trajet(double **src) {
+    double **dest = malloc(NB_PHARMA * sizeof(double *));
+    if (!dest) return NULL;
+
     for (int i = 0; i < NB_PHARMA; i++) {
+        dest[i] = malloc(NB_PHARMA * sizeof(double));
+        if (!dest[i]) {
+            for (int k = 0; k < i; k++) {
+                free(dest[k]);
+            }
+            free(dest);
+            return NULL;
+        }
+
         for (int j = 0; j < NB_PHARMA; j++) {
             dest[i][j] = src[i][j];
         }
     }
-};
+
+    return dest;
+}
