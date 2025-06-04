@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-
+#include <stdlib.h>
 #include "trajet.h"
 #include "matrix.h"
 
@@ -44,20 +44,38 @@ void initialize_matrix_trajets(BoardTrajet matrix, const Trajet* trajets) {
     }
 };
 
-void copy_board_trajet(BoardTrajet dest, BoardTrajet src) {
+double **copy_board_trajet(double **src) {
+    double **dest = malloc(NB_PHARMA * sizeof(double *));
+    if (!dest) return NULL;
+
     for (int i = 0; i < NB_PHARMA; i++) {
+        dest[i] = malloc(NB_PHARMA * sizeof(double));
+        if (!dest[i]) {
+            for (int k = 0; k < i; k++) {
+                free(dest[k]);
+            }
+            free(dest);
+            return NULL;
+        }
+
         for (int j = 0; j < NB_PHARMA; j++) {
             dest[i][j] = src[i][j];
         }
     }
-};
 
-void print_int_matrix(int** matrix, int size){
-    for (int i = 0; i < size; i++) {
-        printf("[");
-        for (int j = 0; j < (sizeof(matrix[i]) / sizeof(matrix[i][0])); j++) {
-            printf("%d, ", matrix[i][j]);
+    return dest;
+}
+
+void print_genome(int* tab, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if(tab[i] == -1){
+            printf(" | ");
+
+        }else{
+            printf("%d ", tab[i]);
         }
-        printf("]\n");
     }
+    printf("\n");
 }

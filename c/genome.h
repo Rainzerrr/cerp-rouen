@@ -3,11 +3,13 @@
 #include "trajet.h"
 #include "matrix.h"
 
-void print_10_genomes(BoardTrajet trajets);
+typedef struct genome { // Flotte de camions
+    int* trajets;
+    int size;
+    double fitness;
+} Genome;
 
-double calcul_fitness(int* genome, int size);
+void test(double **matrix_trajets, double** matrix_durations);
 
-void test(BoardTrajet matrix_trajets);
-
-void launch_genetic(BoardTrajet matrix_trajets, int duration, int population_size);
+void launch_genetic(double **matrix_trajets, double** matrix_durations, int duration, int population_size);
 #endif // GENOME_H

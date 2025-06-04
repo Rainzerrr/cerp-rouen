@@ -3,7 +3,7 @@
 #ifndef TRAJET_H
 #define TRAJET_H
 
-#define NB_PHARMA 21
+#define NB_PHARMA 86
 
 typedef struct trajet {
     int ph1;
