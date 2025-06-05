@@ -221,7 +221,7 @@ void sort_genomes(Genome **generation, int population_size) {
 }
 
 // Vérifier si un gene est deja présent dans un genome
-int is_present(int *child, int size, int value) {
+int is_in_genome(int *child, int size, int value) {
     for (int i = 0; i < size; i++) {
         if (child[i] == value) {
             return 1;
@@ -232,43 +232,131 @@ int is_present(int *child, int size, int value) {
 
 
 // Renvoie un nouveau génome à partir de deux parents, suivant l'algorithme OX (Order Crossover)
-int* crossover(int *parent1, int *parent2, int size) {
-    int *child = malloc(size * sizeof(int));
-    for (int i = 0; i < size; i++) child[i] = -1;
+// int* crossover(int *parent1, int *parent2, int size) {
+//     int *child = malloc(size * sizeof(int));
+//     for (int i = 0; i < size; i++) child[i] = -1;
 
-    // Choisir 2 points de coupe aléatoires
-    int start = rand() % size;
-    int end = rand() % size;
-    if (start > end) { int tmp = start; start = end; end = tmp; }
+//     // Choisir 2 points de coupe aléatoires
+//     int start = rand() % size;
+//     int end = rand() % size;
+//     if (start > end) { int tmp = start; start = end; end = tmp; }
 
-    // Copier une sous-séquence de parent1 dans child
-    for (int i = start; i <= end; i++) {
-        child[i] = parent1[i];
-    }
+//     // Copier une sous-séquence de parent1 dans child
+//     for (int i = start; i <= end; i++) {
+//         child[i] = parent1[i];
+//     }
 
-    // Compléter avec les gènes de parent2
-    int c_idx = (end + 1) % size;
-    int p2_idx = (end + 1) % size;
-    while (c_idx != start) {
-        int gene = parent2[p2_idx];
-        // Si le gène n'est pas déjà dans child
-        int present = 0;
-        for (int j = 0; j < size; j++) {
-            if (child[j] == gene) {
-                present = 1;
-                break;
-            }
+//     // Compléter avec les gènes de parent2
+//     int c_idx = (end + 1) % size;
+//     int p2_idx = (end + 1) % size;
+//     while (c_idx != start) {
+//         int gene = parent2[p2_idx];
+//         // Si le gène n'est pas déjà dans child
+//         int present = 0;
+//         for (int j = 0; j < size; j++) {
+//             if (child[j] == gene) {
+//                 present = 1;
+//                 break;
+//             }
+//         }
+//         if (!present) {
+//             child[c_idx] = gene;
+//             c_idx = (c_idx + 1) % size;
+//         }
+//         p2_idx = (p2_idx + 1) % size;
+//     }
+
+//     return child;
+// }
+
+int count_trucks(int* tab, int size){ // Ajouter le nb de camions dans la struct
+    int cpt = 1;
+    for (int i = 0; i < size; i++)
+    {
+        if(tab[i] == -1){
+            cpt++;
         }
-        if (!present) {
-            child[c_idx] = gene;
-            c_idx = (c_idx + 1) % size;
-        }
-        p2_idx = (p2_idx + 1) % size;
     }
+    return cpt;
 
-    return child;
 }
 
+void find_truck(int* tab, int size, int index, int* truck, int* size_truck){
+    int position = 1;
+    for (int i = 0; i < size; i++)
+    {
+        int j = 0;
+        if(position >= index){
+            while(tab[i+j] != -1){
+                truck[j] = tab[i+j];
+                (*size_truck)++;
+                j++;
+            }
+            truck[j] = -1;
+            (*size_truck)++;
+            return;
+        }
+
+        if(tab[i] == -1){
+            position++;
+        }
+    }
+
+}
+
+Genome* crossover(Genome* first, Genome* second){
+
+    int size_genome1 = first->size;
+    int size_genome2 = second->size;
+
+    Genome* new_genome = allocate_genome();
+
+    int nb_trucks = count_trucks(first->trajets, size_genome1);
+    int index_first_genome = rand()%nb_trucks;
+    
+
+    int size_truck = 0;
+    int* truck = malloc(30*sizeof(int));
+    find_truck(first->trajets, size_genome1, index_first_genome, truck, &size_truck);
+
+
+
+    int nb_pharma_in_new_genome = 0;
+    int i = 0;
+    for(i = 0; i < size_truck; i++){
+        int id_pharma = truck[i];
+        new_genome->trajets[i] = id_pharma;
+        if(id_pharma != -1){
+            nb_pharma_in_new_genome++;
+        }
+        new_genome->size++;
+    }
+
+    int j = 0;  
+    while(j < size_genome2 && nb_pharma_in_new_genome < NB_PHARMA){
+        int id_pharma = second->trajets[j];
+        int size_new_genome = new_genome->size;
+
+        
+        id_pharma = second->trajets[j];
+        int last = new_genome->trajets[size_new_genome-1];
+
+        if(id_pharma == -1 && last != -1){
+            new_genome->trajets[size_new_genome] = id_pharma;
+            new_genome->size++;
+        }
+        else if(!is_in_genome(new_genome->trajets, new_genome->size, id_pharma)){
+            new_genome->trajets[size_new_genome] = id_pharma;
+            new_genome->size++;
+            nb_pharma_in_new_genome++;
+        }
+        j++;
+    }
+
+    free(truck);
+    return new_genome;
+
+}
 
 // Echange deux gènes dans le genome
 void swap_genes(int *genome, int i, int j) {
@@ -446,23 +534,36 @@ void launch_genetic(double **matrix_trajets, double** matrix_durations, int dura
 
         Genome **new_pop = malloc(population_size * sizeof(int*));
 
-        // 1. Élitisme : 5 meilleurs
-        int elite_count = 5;
+        // 1. Élitisme : 10% meilleurs
+        int elite_count = (int)(population_size * 0.1);;
         for (int i = 0; i < elite_count; i++) {
             new_pop[i] = duplicate_genome(population[i]);
         }
 
-        // 2. Génomes aléatoires : reste de la population
-        for (int i = elite_count; i < population_size; i++) {
+         // 2. Croisement : 80% de la population
+        int crossover_start = elite_count;
+        int crossover_end = crossover_start + (int)(population_size * 0.8);
+        int top_30_percent = (int)(population_size * 0.3);
+
+        for (int i = crossover_start; i < crossover_end; i++) {
+            int p1 = rand() % top_30_percent;
+            int p2 = rand() % top_30_percent;
+            while (p2 == p1) p2 = rand() % top_30_percent;
+
+            new_pop[i] = crossover(population[p1], population[p2]);
+
+            // Mutation avec une probabilité de 30%
+            if (rand() % 100 < 30) {
+                random_mutation(new_pop[i]);
+            }
+        }
+
+        // 2. Génomes aléatoires : 10% de la population
+        for (int i = crossover_end; i < population_size; i++) {
             Genome *genome;
             genome = allocate_genome();
             init_genome(genome);
             new_pop[i] = genome;
-        }
-
-        for (int j = 0; j < (int)(population_size * 0.1); j++) {
-            int index = (rand() % population_size-5);
-            random_mutation(new_pop[index+5]);
         }
 
         free_population(population, population_size);
@@ -483,15 +584,32 @@ void test(double **matrix_trajets, double** matrix_durations){
     matrix_distance = copy_board_trajet(matrix_trajets);
     matrix_duration = copy_board_trajet(matrix_durations);
 
-    Genome* genome = allocate_genome();
+    //Genome* genome = allocate_genome();
 
-    init_genome(genome);
-    print_genome(genome->trajets, genome->size);
+    // init_genome(genome);
+    // print_genome(genome->trajets, genome->size);
+
+    // printf("\n\n");
+
+    // random_mutation(genome);
+    // print_genome(genome->trajets, genome->size);
+
+    Genome* genome1 = allocate_genome();
+    Genome* genome2 = allocate_genome();
+    init_genome(genome1);
+    init_genome(genome2);
+
+    printf("Genome 1 : \n");
+    print_genome(genome1->trajets, genome1->size);
 
     printf("\n\n");
 
-    random_mutation(genome);
-    print_genome(genome->trajets, genome->size);
+    printf("Genome 2 : \n");
+    print_genome(genome2->trajets, genome2->size);
+    printf("\n\n");
 
+    Genome* new_genome = crossover(genome1, genome2);
 
+    printf("new genome : \n");
+    print_genome(new_genome->trajets, new_genome->size);
 }

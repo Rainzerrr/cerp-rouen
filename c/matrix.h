@@ -17,3 +17,4 @@ void initialize_matrix_trajets(BoardTrajet matrix, const Trajet* trajets);
 double **copy_board_trajet(double **src);
 
 void print_genome(int* tab, int size);
+void print_tab(int* tab, int size);

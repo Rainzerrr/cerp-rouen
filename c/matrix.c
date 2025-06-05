@@ -66,6 +66,15 @@ double **copy_board_trajet(double **src) {
     return dest;
 }
 
+void print_tab(int* tab, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d ", tab[i]);
+    }
+    printf("\n");
+}
+
 void print_genome(int* tab, int size)
 {
     for (int i = 0; i < size; i++)

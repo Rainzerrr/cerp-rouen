@@ -2,13 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #include "trajet.h"
 #include "genome.h"
 #include "matrix.h"
+#include "globals.h"
 
 #define MAX_LINE_LENGTH 1500
 
-
+// int NB_PHARMA;
 
 void parse_csv_trajet(FILE* file, Trajet* trajets) {
     char line[MAX_LINE_LENGTH];
@@ -142,11 +144,17 @@ int main(int argc, char* argv[]) {
     int duration = 60;
     int nb_pop = 100;
 
-    if(argc > 1) {
-        duration = atoi(argv[1]);
-    }
+    // if(argc < 2){
+    //     printf("Amount of pharmacies must be contributes as first argument");
+    // }
+
+    // NB_PHARMA = atoi(argv[1]);
+
     if(argc > 2) {
-        nb_pop = atoi(argv[2]);
+        duration = atoi(argv[2]);
+    }
+    if(argc > 3) {
+        nb_pop = atoi(argv[3]);
     }
 
     srand(time(NULL));
