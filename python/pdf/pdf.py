@@ -79,8 +79,8 @@ def calculer_heures_parcours(parcours_indices, durations_df, est_matin=True):
         "depart": heure_actuelle.strftime("%H:%M")
     })
     
-    # Pour chaque pharmacie du parcours
-    for i in range(1, len(parcours_indices)):
+    # Pour chaque pharmacie du parcours (sans compter le retour à l'entrepôt)
+    for i in range(1, len(parcours_indices) - 1):
         idx_prec = parcours_indices[i-1]
         idx_act = parcours_indices[i]
         duree_trajet = float(durations_df.iloc[idx_prec, idx_act]) / 60
@@ -99,8 +99,9 @@ def calculer_heures_parcours(parcours_indices, durations_df, est_matin=True):
         })
     
     # Calculer l'heure de retour à l'entrepôt
-    idx_derniere = parcours_indices[-1]
-    duree_retour = float(durations_df.iloc[idx_derniere, 0]) / 60  # Retour vers l'entrepôt (indice 0) - A supprimer plus tard
+    idx_derniere = parcours_indices[-2]  # Avant-dernier indice (dernière pharmacie)
+    idx_entrepot = parcours_indices[-1]  # Dernier indice (retour à l'entrepôt)
+    duree_retour = float(durations_df.iloc[idx_derniere, idx_entrepot]) / 60
     heure_actuelle += timedelta(minutes=duree_retour)
     heure_retour = heure_actuelle.strftime("%H:%M")
     
@@ -116,11 +117,6 @@ def calculer_distance_parcours(parcours_indices, distances_df):
         idx_arrivee = parcours_indices[i + 1]
         distance = float(distances_df.iloc[idx_depart, idx_arrivee]) / 1000 # Convertir en km
         distance_totale += distance
-    
-    # Ajouter la distance de retour à l'entrepôt
-    idx_derniere = parcours_indices[-1]
-    distance_retour = float(distances_df.iloc[idx_derniere, 0]) / 1000  # Retour vers l'entrepôt (indice 0) - A supprimer plus tard
-    distance_totale += distance_retour
     
     return distance_totale
 
@@ -144,11 +140,6 @@ def creer_carte(parcours_indices, pharmacies_df, nom_fichier):
         else:
             m.add_marker(CircleMarker((lon, lat), CERP_COLOR_3, 23))
             m.add_marker(CircleMarker((lon, lat), CERP_COLOR_2, 20))
-    
-    # Ajouter les coordonnées du retour à l'entrepôt
-    entrepot_lat = float(pharmacies_df.iloc[0]['latitude'])
-    entrepot_lon = float(pharmacies_df.iloc[0]['longitude'])
-    coords.append((entrepot_lon, entrepot_lat))
     
     # Tracer le parcours
     line = Line(coords, CERP_COLOR_3, 5)
@@ -208,7 +199,6 @@ def generer_pdf_parcours(parcours_indices, pharmacies_df, durations_df, distance
     # Styles personnalisés pour le PDF
     styles = creer_styles_pdf()
 
-    # Image du logo (optionnel)
     logo_path = "logo_cerp.png"
     logo = None
     if os.path.exists(logo_path):
@@ -230,18 +220,16 @@ def generer_pdf_parcours(parcours_indices, pharmacies_df, durations_df, distance
     # Tableau récapitulatif
     data = [["Pharmacie", "Adresse", "Arrivée", "Départ"]]
     
-    # Ajouter l'entrepôt
     entrepot = pharmacies_df.iloc[0]
-    adresse_entrepot = f"{entrepot['adresse']}, {entrepot['code_postal']}"
+    adresse_entrepot = f"{entrepot['adresse']}, {entrepot['code_postal']} {entrepot['ville']}"
     data.append([
-        "Départ entrepôt Cerp",
+        "Départ entrepôt CERP",
         adresse_entrepot,
         "",
         heures[0]['depart']
     ])
     
-    # Ajouter chaque pharmacie
-    for i in range(1, len(parcours_indices)):
+    for i in range(1, len(parcours_indices) - 1):
         idx = parcours_indices[i]
         pharmacie = pharmacies_df.iloc[idx]
         adresse = f"{pharmacie['adresse']}, {pharmacie['code_postal']} {pharmacie['ville']}"
@@ -254,7 +242,7 @@ def generer_pdf_parcours(parcours_indices, pharmacies_df, durations_df, distance
     
     # Ajouter le retour à l'entrepôt
     data.append([
-        "Retour entrepôt Cerp",
+        "Retour entrepôt CERP",
         adresse_entrepot,
         heure_retour,
         ""
@@ -322,14 +310,28 @@ def main():
     print("Chargement des données...")
     pharmacies_df, durations_df, distances_df = charger_donnees()
     
-    parcours_camionnettes = [
-        [0, 10, 24, 11, 26, 37],
-        [0, 7, 47, 15, 19]
-    ]
-        
+    parcours_camionnettes = [10, 24, 11, 26, 37, -1, 7, 47, 15, 19, 76, -1, 2, 3, 9, 27] # A compléter avec les parcours réels
+
+    parcours_separes = []
+    parcours_temp = []
+
+    for point in parcours_camionnettes:
+        if point == -1:
+            if parcours_temp:
+                parcours_separes.append([0] + parcours_temp + [0])  # Ajouter le point de départ et de fin
+            parcours_temp = []
+        else:
+            parcours_temp.append(point)
+
+    if parcours_temp:
+        parcours_separes.append([0] + parcours_temp + [0])  # Ajouter le point de départ et de fin pour le dernier parcours
+
+    print(f"Parcours séparés: {parcours_separes}")
     print("Génération des fichiers PDF...")
     pdfmetrics.registerFont(TTFont('Grotesk', 'fonts/Grotesk.ttf'))
-    traiter_tous_parcours(parcours_camionnettes, pharmacies_df, durations_df, distances_df)
+    
+    # Utilisez parcours_separes au lieu de parcours_camionnettes
+    traiter_tous_parcours(parcours_separes, pharmacies_df, durations_df, distances_df)
 
 if __name__ == "__main__":
     main()
