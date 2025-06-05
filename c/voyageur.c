@@ -144,17 +144,11 @@ int main(int argc, char* argv[]) {
     int duration = 60;
     int nb_pop = 100;
 
-    // if(argc < 2){
-    //     printf("Amount of pharmacies must be contributes as first argument");
-    // }
-
-    // NB_PHARMA = atoi(argv[1]);
-
-    if(argc > 2) {
-        duration = atoi(argv[2]);
+    if(argc > 1) {
+        duration = atoi(argv[1]);
     }
-    if(argc > 3) {
-        nb_pop = atoi(argv[3]);
+    if(argc > 2) {
+        nb_pop = atoi(argv[2]);
     }
 
     srand(time(NULL));
