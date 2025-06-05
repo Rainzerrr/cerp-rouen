@@ -1,4 +1,4 @@
-CC=gcc
+CC=gcc -g
 CFLAGS=
 LDFLAGS=-lm
 OBJ=voyageur.o genome.o matrix.o trajet.o

@@ -183,6 +183,8 @@ int main(int argc, char* argv[]) {
 
     launch_genetic(distances, durations, duration, nb_pop);
 
+    //test(distances, durations);
+
     // Libération mémoire
     liberer_matrice(distances, NB_PHARMA);
     liberer_matrice(durations, NB_PHARMA);

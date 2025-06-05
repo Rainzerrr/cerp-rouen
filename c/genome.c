@@ -36,6 +36,54 @@ double get_trajet_duration(int i, int j) {
     return matrix_duration[i][j];
 };
 
+void random_mutation(Genome* genome) {
+    int size = genome->size;
+    int i = 0;
+
+    size_t index1 = rand() % (size-1);
+    size_t index2 = rand() % (size-1);
+
+
+    while (index1 == index2 || genome->trajets[index1] == -1 || genome->trajets[index2] == -1) {
+        index1 = rand() % (size-1);
+        index2 = rand() % (size-1);
+    }
+
+    int temp = genome->trajets[index1];
+    genome->trajets[index1] = genome->trajets[index2];
+    genome->trajets[index2] = temp;
+
+}
+
+void trajet_mutation(Genome* genome) {
+    int size = genome->size;
+    int i = 0;
+    while (i <= size) {
+        int j = i;
+        int cpt = 0;
+        while (genome->trajets[j] != -1 && j < size) {
+            cpt++;
+            j++;
+        }
+
+        int index1 = j - (rand() % cpt)-1;
+        int index2 = j - (rand() % cpt)-1;
+
+        while (index1 == index2) {
+            index1 = j - (rand() % cpt)-1;
+            index2 = j - (rand() % cpt)-1;
+        }
+
+
+        int temp = genome->trajets[index1];
+        genome->trajets[index1] = genome->trajets[index2];
+        genome->trajets[index2] = temp;
+
+        i = j+1;
+    }
+
+}
+
 // Mélange la position des genes dans un genome
 void shuffle(int* tab, int size, int nbShuffle) {
     for (int i = 0; i < nbShuffle-1; i++) {
@@ -412,6 +460,11 @@ void launch_genetic(double **matrix_trajets, double** matrix_durations, int dura
             new_pop[i] = genome;
         }
 
+        for (int j = 0; j < (int)(population_size * 0.1); j++) {
+            int index = (rand() % population_size-5);
+            random_mutation(new_pop[index+5]);
+        }
+
         free_population(population, population_size);
         population = new_pop;
         gen++;
@@ -433,6 +486,11 @@ void test(double **matrix_trajets, double** matrix_durations){
     Genome* genome = allocate_genome();
 
     init_genome(genome);
+    print_genome(genome->trajets, genome->size);
+
+    printf("\n\n");
+
+    random_mutation(genome);
     print_genome(genome->trajets, genome->size);
 
 
