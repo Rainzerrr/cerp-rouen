@@ -4,8 +4,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
+from reportlab.lib.units import cm
 import os
 from staticmap import StaticMap, CircleMarker, Line
+from io import BytesIO
+from PIL import Image as PILImage, ImageDraw, ImageFont
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 
 # Constantes
@@ -14,6 +19,32 @@ HEURE_DEPART_MATIN = "09:00"
 HEURE_DEPART_APRES_MIDI = "15:00"
 CONSOMMATION_CARBURANT = 6.5  # L/100km
 PRIX_DIESEL = 1.72  # euros/L
+CERP_COLOR_1 = "#50baa1"
+CERP_COLOR_2 = "#9ccb5e" 
+CERP_COLOR_3 = "#093866" 
+
+
+
+def creer_legende_carte():
+    """Crée une image de légende pour la carte"""
+    legend = PILImage.new('RGBA', (200, 80), (255, 255, 255, 200))
+    draw = ImageDraw.Draw(legend)
+    
+    # Dessiner les cercles de la légende
+    draw.ellipse((20, 15, 40, 35), fill=CERP_COLOR_1)
+    draw.ellipse((20, 45, 40, 65), fill=CERP_COLOR_2)
+    
+    # Ajouter le texte explicatif
+    font = ImageFont.truetype("fonts/Grotesk.ttf", 14)
+    draw.text((50, 17), "CERP Rouen", fill=(0, 0, 0), font=font)
+    draw.text((50, 47), "Pharmacies", fill=(0, 0, 0), font=font)
+    
+    # Sauvegarder dans un buffer
+    buffer = BytesIO()
+    legend.save(buffer, format="PNG")
+    buffer.seek(0)
+    
+    return buffer
 
 def charger_donnees():
     # Chargement des données
@@ -94,22 +125,26 @@ def calculer_distance_parcours(parcours_indices, distances_df):
     return distance_totale
 
 def creer_carte(parcours_indices, pharmacies_df, nom_fichier):
-    """Crée une carte statique du parcours"""
+    """Crée une carte statique du parcours avec légende"""
     # Définir la taille de la carte
     m = StaticMap(800, 500)
     
     # Extraire les coordonnées
     coords = []
-    for idx in parcours_indices:
+    etiquettes = []
+    
+    for i, idx in enumerate(parcours_indices):
         lat = float(pharmacies_df.iloc[idx]['latitude'])
         lon = float(pharmacies_df.iloc[idx]['longitude'])
-        coords.append((lon, lat)) # Static Map inverse les coordonnées (longitude, latitude)
+        coords.append((lon, lat))
         
-        # Marquer chaque pharmacie
-        if idx == 0:  # Entrepôt
-            m.add_marker(CircleMarker((lon, lat), '#FF0000', 10))  # Rouge pour l'entrepôt
+        # Numéroter les points sur le parcours
+        if idx == 0:
+            etiquettes.append("Entrepôt")
+            m.add_marker(CircleMarker((lon, lat), CERP_COLOR_1, 20))
         else:
-            m.add_marker(CircleMarker((lon, lat), '#0000FF', 8))   # Bleu pour les pharmacies
+            etiquettes.append(f"{i}")
+            m.add_marker(CircleMarker((lon, lat), CERP_COLOR_2, 20))
     
     # Ajouter les coordonnées du retour à l'entrepôt
     entrepot_lat = float(pharmacies_df.iloc[0]['latitude'])
@@ -117,15 +152,43 @@ def creer_carte(parcours_indices, pharmacies_df, nom_fichier):
     coords.append((entrepot_lon, entrepot_lat))
     
     # Tracer le parcours
-    line = Line(coords, '#FF0000', 4)
+    line = Line(coords, CERP_COLOR_3, 5)
     m.add_line(line)
     
-    # Générer l'image
+    # Générer l'image de la carte
     img_path = f"{nom_fichier}.png"
     image = m.render()
+    
+    # Ajouter la légende à l'image de la carte
+    legend_buffer = creer_legende_carte()
+    legend_img = PILImage.open(legend_buffer)
+    image.paste(legend_img, (20, image.height - 100), legend_img)
+    
     image.save(img_path)
     
     return os.path.abspath(img_path)
+
+def creer_styles_pdf():
+    """Crée des styles personnalisés pour le PDF"""
+    styles = getSampleStyleSheet()
+    
+    # Style pour le titre principal (aligné à gauche)
+    title_style = styles["Heading1"].clone('title_style')
+    title_style.alignment = 0  # 0 = gauche
+    title_style.fontSize = 25
+    title_style.leading = 22
+    title_style.fontName = 'Grotesk'
+
+    # Style pour le texte normal
+    body = styles["Normal"].clone('body')
+    body.alignment = 0  # 0 = gauche
+    body.fontSize = 10
+    body.fontName = 'Grotesk'
+    
+    styles.add(title_style)
+    styles.add(body)
+    
+    return styles
 
 def generer_pdf_parcours(parcours_indices, pharmacies_df, durations_df, distances_df, num_camionnette, est_matin=True):
     """Génère un PDF pour un parcours donné"""
@@ -140,23 +203,37 @@ def generer_pdf_parcours(parcours_indices, pharmacies_df, durations_df, distance
     
     # Créer le PDF
     nom_pdf = f"parcours_camionnette_{num_camionnette}.pdf"
-    doc = SimpleDocTemplate(nom_pdf, pagesize=A4)
+    doc = SimpleDocTemplate(nom_pdf, pagesize=A4, leftMargin=1*cm, rightMargin=1*cm, topMargin=1*cm, bottomMargin=1*cm)
     elements = []
     
-    # Styles pour le PDF
-    styles = getSampleStyleSheet()
-    titre_style = styles["Heading1"]
+    # Styles personnalisés pour le PDF
+    styles = creer_styles_pdf()
+
+    # Image du logo (optionnel)
+    logo_path = "logo_cerp.png"
+    logo = None
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=50, height=50)
+    else:
+        print(f"Le logo n'a pas été trouvé à l'emplacement: {logo_path}")
     
-    # Titre
-    elements.append(Paragraph(f"Camionnette {num_camionnette}", titre_style))
-    elements.append(Spacer(1, 12))
+    # En-tête avec logo à droite et titre à gauche
+    header_data = [[Paragraph(f"Camionnette {num_camionnette}", styles["title_style"]), logo]]
+    header = Table(header_data, colWidths=[doc.width-1*cm, 1*cm])
+    header.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+    ]))
+    elements.append(header)
+    elements.append(Spacer(1, 20))
     
     # Tableau récapitulatif
     data = [["Pharmacie", "Adresse", "Arrivée", "Départ"]]
     
     # Ajouter l'entrepôt
     entrepot = pharmacies_df.iloc[0]
-    adresse_entrepot = f"{entrepot['adresse']}, {entrepot['code_postal']} {entrepot['ville']}"
+    adresse_entrepot = f"{entrepot['adresse']}, {entrepot['code_postal']}"
     data.append([
         "Départ entrepôt Cerp",
         adresse_entrepot,
@@ -170,7 +247,7 @@ def generer_pdf_parcours(parcours_indices, pharmacies_df, durations_df, distance
         pharmacie = pharmacies_df.iloc[idx]
         adresse = f"{pharmacie['adresse']}, {pharmacie['code_postal']} {pharmacie['ville']}"
         data.append([
-            pharmacie['nom'],
+            f"{i}. {pharmacie['nom']}",
             adresse,
             heures[i]['arrivee'],
             heures[i]['depart']
@@ -185,38 +262,45 @@ def generer_pdf_parcours(parcours_indices, pharmacies_df, durations_df, distance
     ])
     
     # Créer le tableau
-    table = Table(data)
+    largeur_tableau = doc.width * 0.98
+    table = Table(data, colWidths=[
+        largeur_tableau * 0.30,  # Pharmacie
+        largeur_tableau * 0.45,  # Adresse  
+        largeur_tableau * 0.125,  # Arrivée
+        largeur_tableau * 0.125   # Départ
+    ])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.darkslateblue),
+        ('BACKGROUND', (0, 0), (-1, 0), CERP_COLOR_3),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Grotesk'),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
         ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]))
     
     elements.append(table)
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 20))
     
     # Informations sur la distance et le carburant
-    elements.append(Paragraph(f"Distance totale : {distance_totale:.2f} km", styles["Normal"]))
-    elements.append(Paragraph(f"Carburant estimé : {consommation:.2f}L ({CONSOMMATION_CARBURANT} L / 100km)", styles["Normal"]))
-    elements.append(Paragraph(f"Coût carburant : {cout_carburant:.2f} euros (diesel : {PRIX_DIESEL} euros / L)", styles["Normal"]))
-    
-    # Générer et inclure la carte
-    elements.append(Spacer(1, 12))
-    elements.append(Paragraph("Carte du parcours:", styles["Heading2"]))
+    elements.append(Paragraph(f"Distance totale : {distance_totale:.2f} km", styles["body"]))
+    elements.append(Spacer(1, 5))
+    elements.append(Paragraph(f"Carburant estimé : {consommation:.2f}L ({CONSOMMATION_CARBURANT} L / 100km)", styles["body"]))
+    elements.append(Spacer(1, 5))
+    elements.append(Paragraph(f"Coût carburant : {cout_carburant:.2f} euros (diesel : {PRIX_DIESEL} euros / L)", styles["body"]))
+    elements.append(Spacer(1, 20))
     
     try:
         carte_path = creer_carte(parcours_indices, pharmacies_df, f"carte_camionnette_{num_camionnette}")
-        img = Image(carte_path, width=500, height=300)
+        img = Image(carte_path, width=525, height=300)
         elements.append(img)
         print(f"Une carte a été intégrée au PDF: {carte_path}")
     except Exception as e:
         print(f"Erreur lors de la création de la carte: {e}")
         print("La carte n'a pas pu être générée.")
-        elements.append(Paragraph("La carte n'a pas pu être générée.", styles["Normal"]))
+        elements.append(Paragraph("La carte n'a pas pu être générée.", styles["body"]))
     
     # Terminer le PDF
     doc.build(elements)
@@ -245,6 +329,7 @@ def main():
     ]
         
     print("Génération des fichiers PDF...")
+    pdfmetrics.registerFont(TTFont('Grotesk', 'fonts/Grotesk.ttf'))
     traiter_tous_parcours(parcours_camionnettes, pharmacies_df, durations_df, distances_df)
 
 if __name__ == "__main__":
