@@ -131,7 +131,6 @@ def creer_carte(parcours_indices, pharmacies_df, nom_fichier):
     
     # Extraire les coordonnées
     coords = []
-    etiquettes = []
     
     for i, idx in enumerate(parcours_indices):
         lat = float(pharmacies_df.iloc[idx]['latitude'])
@@ -140,10 +139,10 @@ def creer_carte(parcours_indices, pharmacies_df, nom_fichier):
         
         # Numéroter les points sur le parcours
         if idx == 0:
-            etiquettes.append("Entrepôt")
+            m.add_marker(CircleMarker((lon, lat), CERP_COLOR_3, 23))
             m.add_marker(CircleMarker((lon, lat), CERP_COLOR_1, 20))
         else:
-            etiquettes.append(f"{i}")
+            m.add_marker(CircleMarker((lon, lat), CERP_COLOR_3, 23))
             m.add_marker(CircleMarker((lon, lat), CERP_COLOR_2, 20))
     
     # Ajouter les coordonnées du retour à l'entrepôt
